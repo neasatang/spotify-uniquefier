@@ -8,7 +8,7 @@ import json
 username='1162445298'
 scope = 'playlist-modify-public	'
 temp = 'nualaoch'
-new_playlist_id='5mP5SMIuWYmAfF5vX86K4L'
+new_playlist_id='49tVCLVpPXyMjf11s2Dtpt'
 
 @app.route("/")
 def hello():
@@ -18,6 +18,7 @@ def hello():
     other_playlist_id=None
     my_playlist_song_total=0
     other_playlist_song_total=0
+    remove = False
 
     # get token
     token = util.prompt_for_user_token(username, scope)
@@ -86,9 +87,13 @@ def hello():
 
         #gets rid of duplicates in total id array
         storage_arr = total_id_arr[:]
+        duplicate_arr = []
         for index,value in enumerate(total_id_arr):
             if value in total_id_arr[index+1:]:
                 storage_arr = list(filter((value).__ne__, storage_arr))
+
+                #adds the duplicates to an array
+                duplicate_arr.append(value)
 
         uniq = storage_arr[:]
         comb = combined_id_arr[:]
@@ -98,23 +103,54 @@ def hello():
                 uniq = list(filter((value).__ne__, uniq))
                 comb = list(filter((value).__ne__, combined_id_arr))
 
+        remove_uniq = duplicate_arr[:]
+        remove_comb = combined_id_arr[:]
+        other_duplicate_arr = []
+
+        #get rid of duplicates
+        for index, value in enumerate(remove_comb):
+            if value in remove_uniq:
+                remove_uniq = list(filter(value.__ne__, remove_uniq))
+
+                #add duplicates to an array
+                other_duplicate_arr.append(value)
+
+        dict = {}
+        dictList = []
+        for i in range(len(other_duplicate_arr)):
+            dict = {"uri": 'spotify:track:' + str(other_duplicate_arr[i])}
+            dictList.append(dict)
+            remove = True
+
+        print(dictList)
+
+        songList = []
+        for i in range(len(other_duplicate_arr)):
+            songList = ['spotify:track:' + str(other_duplicate_arr[i])]
+
+        if(remove):
+            results = sp.user_playlist_remove_all_occurrences_of_tracks(username, new_playlist_id, songList, snapshot_id=None)
+
         #goes through array that contains the unique songs, and adds them to new playlist
-        unique_song_array = []
+        global unique_song_arr
+        unique_song_arr = []
+
         count = 0
         for track in uniq:
             count+=1
-            unique_song_array.append(track)
+            unique_song_arr.append(track)
 
             if count == 100:
 
-                results = sp.user_playlist_add_tracks(username, new_playlist_id, unique_song_array)
-                unique_song_array = []
+                results = sp.user_playlist_add_tracks(username, new_playlist_id, unique_song_arr)
+                unique_song_arr = []
                 count = 0
 
         if count > 0:
-            results = sp.user_playlist_add_tracks(username, new_playlist_id, unique_song_array)
+            results = sp.user_playlist_add_tracks(username, new_playlist_id, unique_song_arr)
             unique_song_array = []
             count = 0
+
         return 'hi'
 
     else:
