@@ -13,5 +13,7 @@ Type `export FLASK_APP=uniqueSongs.py` to create the playlist that identifies th
 
 Type `flask run` and then open `127.0.0.1:5000/` in your browser. Check Spotify and voilà.
 
+#todo list
+[]clean the code cause its so bad
 
 
